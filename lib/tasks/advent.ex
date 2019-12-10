@@ -7,11 +7,14 @@ defmodule Mix.Tasks.Advent do
     part = to_part_atom(part)
 
     mod.execute(part)
-    |> Integer.to_string()
+    |> to_string()
     |> Mix.shell().info()
   end
 
-  defp module("1"), do: Advent.Day1
+  defp module(day) do
+    "Elixir.Advent.Day#{day}"
+    |> String.to_atom()
+  end
 
   defp to_part_atom("1"), do: :part_1
   defp to_part_atom("2"), do: :part_2
