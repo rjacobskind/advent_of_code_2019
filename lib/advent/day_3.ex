@@ -18,11 +18,12 @@ defmodule Advent.Day3 do
     path_2_coords = generate_coords(path_2)
 
     coords_in_common = compare_coords(path_1_coords, path_2_coords)
+    IO.inspect(coords_in_common)
     find_smallest_distance(coords_in_common)
   end
 
   defp generate_coords(path) do
-    Enum.reduce(path, [{0, 0}], fn (instruction, acc) ->
+    Enum.reduce(path, [{0, 0}], fn instruction, acc ->
       direction = String.at(instruction, 0)
       steps = String.slice(instruction, 1..-1) |> String.to_integer()
       last_coord = List.last(acc)
@@ -34,26 +35,36 @@ defmodule Advent.Day3 do
           "U" -> next_coords("y", steps, 1, last_coord)
           "D" -> next_coords("y", steps, -1, last_coord)
         end
+
       acc ++ next_coords
     end)
   end
 
   defp next_coords(axis_to_change, iterations, increment_val, {x, y} = _starting_coord) do
     next_coords = []
-    if (axis_to_change == "y") do
+
+    if axis_to_change == "y" do
       for n <- 1..iterations do
-        next_coords ++ {x, y + (n * increment_val)}
+        next_coords ++ {x, y + n * increment_val}
       end
     else
       for n <- 1..iterations do
-        next_coords ++ {x + (n * increment_val), y}
+        next_coords ++ {x + n * increment_val, y}
       end
     end
   end
 
   defp compare_coords(path_1_coords, path_2_coords) do
-    Enum.filter(path_1_coords, fn coord ->
-      Enum.member?(path_2_coords, coord) and coord != {0, 0}
+    path_2_groups = Enum.group_by(path_2_coords, fn {x, _y} -> x end)
+
+    Enum.filter(path_1_coords, fn {x, _y} = coord ->
+      path_2_group = Map.get(path_2_groups, x)
+
+      if is_nil(path_2_group) or coord == {0, 0} do
+        false
+      else
+        Enum.member?(path_2_group, coord)
+      end
     end)
   end
 
