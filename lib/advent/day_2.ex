@@ -15,6 +15,27 @@ defmodule Advent.Day2 do
     |> Enum.at(0)
   end
 
+  def execute(input, :part_2) do
+    combos = for noun <- 0..99, verb <- 0..99, do: {noun, verb}
+
+    Enum.reduce_while(combos, nil, fn {noun, verb}, _acc ->
+      result =
+        input
+        |> String.split(",")
+        |> Enum.map(&String.to_integer(&1))
+        |> List.replace_at(1, noun)
+        |> List.replace_at(2, verb)
+        |> process(0)
+        |> Enum.at(0)
+
+        if result == 19690720 do
+          {:halt, 100 * noun + verb}
+        else
+          {:cont, nil}
+        end
+    end)
+  end
+
   def part_1(input) do
     list =
       input
