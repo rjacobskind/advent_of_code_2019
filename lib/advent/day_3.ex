@@ -69,21 +69,17 @@ defmodule Advent.Day3 do
   end
 
   defp compare_coords(path_1_coords, path_2_coords) do
-    # Grouping helps performance. We can compare the coordinates from path 1 to a subset of
-    # path 2's coordinates.
-
-    # REFACTOR OPPORTUNITY: We could improve performance further by grouping
-    # path 1's coordinates and comparing 2 sub-groups to one another.
-
+    # Grouping helps performance. We can compare the subsets of coordinates from path 1 and path 2.
+    path_1_groups = Enum.group_by(path_1_coords, fn {x, _y} -> x end)
     path_2_groups = Enum.group_by(path_2_coords, fn {x, _y} -> x end)
 
-    Enum.filter(path_1_coords, fn {x, _y} = coord ->
-      path_2_group = Map.get(path_2_groups, x)
-
-      if is_nil(path_2_group) or coord == {0, 0} do
-        false
+    Enum.reduce(path_1_groups, [], fn {x_val, coords1}, acc ->
+      path_2_group = Map.get(path_2_groups, x_val)
+      if not is_nil(path_2_group)  do
+        shared_coords = Enum.filter(coords1, fn coord -> Enum.member?(path_2_group, coord) && coord !== {0, 0} end)
+        acc ++ shared_coords
       else
-        Enum.member?(path_2_group, coord)
+        acc
       end
     end)
   end
