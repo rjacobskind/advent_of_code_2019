@@ -10,6 +10,10 @@ defmodule Advent.Day3 do
     part_1(path_1, path_2)
   end
 
+  def execute([path_1, path_2], :part_2) do
+    part_2(path_1, path_2)
+  end
+
   def part_1(path_1, path_2) do
     path_1 = String.split(path_1, ",")
     path_2 = String.split(path_2, ",")
@@ -18,8 +22,18 @@ defmodule Advent.Day3 do
     path_2_coords = generate_coords(path_2)
 
     coords_in_common = compare_coords(path_1_coords, path_2_coords)
-    IO.inspect(coords_in_common)
     find_smallest_distance(coords_in_common)
+  end
+
+  def part_2(path_1, path_2) do
+    path_1 = String.split(path_1, ",")
+    path_2 = String.split(path_2, ",")
+
+    path_1_coords = generate_coords(path_1)
+    path_2_coords = generate_coords(path_2)
+
+    coords_in_common = compare_coords(path_1_coords, path_2_coords)
+    find_smallest_steps(coords_in_common, path_1_coords, path_2_coords)
   end
 
   defp generate_coords(path) do
@@ -55,6 +69,12 @@ defmodule Advent.Day3 do
   end
 
   defp compare_coords(path_1_coords, path_2_coords) do
+    # Grouping helps performance. We can compare the coordinates from path 1 to a subset of
+    # path 2's coordinates.
+
+    # REFACTOR OPPORTUNITY: We could improve performance further by grouping
+    # path 1's coordinates and comparing 2 sub-groups to one another.
+
     path_2_groups = Enum.group_by(path_2_coords, fn {x, _y} -> x end)
 
     Enum.filter(path_1_coords, fn {x, _y} = coord ->
@@ -71,5 +91,23 @@ defmodule Advent.Day3 do
   defp find_smallest_distance(coords_in_common) do
     {min_x, min_y} = Enum.min_by(coords_in_common, fn {x, y} -> abs(x) + abs(y) end)
     abs(min_x) + abs(min_y)
+  end
+
+  defp find_smallest_steps(coords_in_common, path_1_coords, path_2_coords) do
+    Enum.reduce(coords_in_common, nil, fn c, acc ->
+      steps = steps_sum(c, path_1_coords, path_2_coords)
+
+      if is_nil(acc) or steps < acc do
+        steps
+      else
+        acc
+      end
+    end)
+  end
+
+  defp steps_sum(c, path_1_coords, path_2_coords) do
+    steps_1 = Enum.find_index(path_1_coords, fn coord -> coord == c end)
+    steps_2 = Enum.find_index(path_2_coords, fn coord -> coord == c end)
+    steps_1 + steps_2
   end
 end
